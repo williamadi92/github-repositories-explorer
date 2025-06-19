@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { User } from "../types/user";
 import ChevronDown from "./icons/ChevronDown";
 import ChevronUp from "./icons/ChevronUp";
@@ -31,31 +31,34 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
     setExpand((prev) => !prev);
   };
 
-  const fetchRepos = async (currentPage: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `https://api.github.com/users/${user.login}/repos?page=${currentPage}&per_page=${PER_PAGE}`,
-        {
-          headers: {
-            Authorization: `token ${GITHUB_TOKEN}`,
-          },
-        }
-      );
-      const data = await res.json();
+  const fetchRepos = useCallback(
+    async (currentPage: number) => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://api.github.com/users/${user.login}/repos?page=${currentPage}&per_page=${PER_PAGE}`,
+          {
+            headers: {
+              Authorization: `token ${GITHUB_TOKEN}`,
+            },
+          }
+        );
+        const data = await res.json();
 
-      if (Array.isArray(data)) {
-        setRepos((prev) => [...prev, ...data]);
-        setHasMore(data.length === PER_PAGE);
-      } else {
-        setHasMore(false);
+        if (Array.isArray(data)) {
+          setRepos((prev) => [...prev, ...data]);
+          setHasMore(data.length === PER_PAGE);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch repositories:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to fetch repositories:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [user.login, GITHUB_TOKEN]
+  );
 
   useEffect(() => {
     if (expand && repos.length === 0) {
@@ -63,7 +66,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
       setRepos([]);
       fetchRepos(1);
     }
-  }, [expand]);
+  }, [expand, repos.length, fetchRepos]);
 
   const handleScroll = () => {
     if (!scrollRef.current || loading || !hasMore) return;
