@@ -22,7 +22,7 @@ const GitHubUserSearch: React.FC = () => {
       `https://api.github.com/search/users?q=${query.trim()}&page=1&per_page=5`,
       {
         headers: {
-          Authorization: `token ${GITHUB_TOKEN}`,
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
         },
       }
     );

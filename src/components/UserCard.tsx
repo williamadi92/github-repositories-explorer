@@ -39,7 +39,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           `https://api.github.com/users/${user.login}/repos?page=${currentPage}&per_page=${PER_PAGE}`,
           {
             headers: {
-              Authorization: `token ${GITHUB_TOKEN}`,
+              Authorization: `Bearer ${GITHUB_TOKEN}`,
             },
           }
         );
