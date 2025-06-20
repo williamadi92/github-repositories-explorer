@@ -8,6 +8,7 @@ const GitHubUserSearch: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [submittedQuery, setSubmittedQuery] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
 
   useEffect(() => {
@@ -25,17 +26,43 @@ const GitHubUserSearch: React.FC = () => {
       headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
     }
 
-    const res = await fetch(
-      `https://api.github.com/search/users?q=${query.trim()}&page=1&per_page=5`,
-      {
-        headers,
-      }
-    );
+    try {
+      const res = await fetch(
+        `https://api.github.com/search/users?q=${query.trim()}&page=1&per_page=5`,
+        {
+          headers,
+        }
+      );
 
-    setSubmittedQuery(query);
-    const data = await res.json();
-    setUsers(data.items);
-    setLoading(false);
+      if (res.status === 401) {
+        setError("Unauthorized: GitHub token is invalid or expired.");
+        setLoading(false);
+        return;
+      }
+
+      if (res.status === 403) {
+        setError(
+          "Rate limit reached. Please try again later or use GitHub token."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (!res.ok) {
+        setError(`Errors: ${res.status} ${res.statusText}`);
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setUsers(data.items || []);
+      setSubmittedQuery(query);
+    } catch (error) {
+      setError("Something went wrong. Please try again later.");
+      console.error("Failed to fetch users:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -79,6 +106,7 @@ const GitHubUserSearch: React.FC = () => {
           <UserCard key={user.id} user={user} />
         ))}
       </div>
+      {error && <p className="text-red-600 mt-4">{error}</p>}
     </div>
   );
 };

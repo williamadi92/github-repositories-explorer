@@ -22,6 +22,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const GITHUB_TOKEN = process.env.REACT_APP_GITHUB_TOKEN;
@@ -47,6 +48,26 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
             headers,
           }
         );
+        if (res.status === 401) {
+          setError("Unauthorized: GitHub token is invalid or expired.");
+          setLoading(false);
+          return;
+        }
+
+        if (res.status === 403) {
+          setError(
+            "Rate limit reached. Please try again later or use GitHub token."
+          );
+          setLoading(false);
+          return;
+        }
+
+        if (!res.ok) {
+          setError(`Errors: ${res.status} ${res.statusText}`);
+          setLoading(false);
+          return;
+        }
+
         const data = await res.json();
 
         if (Array.isArray(data)) {
@@ -56,6 +77,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           setHasMore(false);
         }
       } catch (error) {
+        setError("Something went wrong. Please try again later.");
         console.error("Failed to fetch repositories:", error);
       } finally {
         setLoading(false);
@@ -85,6 +107,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
   return (
     <React.Fragment>
+      {error && <p className="text-red-600 mt-4">{error}</p>}
       <div className="bg-gray-200 p-2 mt-2 rounded">
         <div
           className="flex justify-between items-center cursor-pointer"
