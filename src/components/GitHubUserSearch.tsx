@@ -18,12 +18,17 @@ const GitHubUserSearch: React.FC = () => {
     if (!query.trim()) return;
     setLoading(true);
     setQuery(query.trim());
+
+    const headers: Record<string, string> = {};
+
+    if (GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+    }
+
     const res = await fetch(
       `https://api.github.com/search/users?q=${query.trim()}&page=1&per_page=5`,
       {
-        headers: {
-          Authorization: `Bearer ${GITHUB_TOKEN}`,
-        },
+        headers,
       }
     );
 

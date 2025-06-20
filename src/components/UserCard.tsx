@@ -35,12 +35,16 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
     async (currentPage: number) => {
       setLoading(true);
       try {
+        const headers: Record<string, string> = {};
+
+        if (GITHUB_TOKEN) {
+          headers.Authorization = `Bearer ${GITHUB_TOKEN}`;
+        }
+
         const res = await fetch(
           `https://api.github.com/users/${user.login}/repos?page=${currentPage}&per_page=${PER_PAGE}`,
           {
-            headers: {
-              Authorization: `Bearer ${GITHUB_TOKEN}`,
-            },
+            headers,
           }
         );
         const data = await res.json();
