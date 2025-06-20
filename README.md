@@ -2,6 +2,8 @@
 
 A simple and modern GitHub user search interface built with **React JS**, **TypeScript**, and **Tailwind CSS**. This app allows you to search for GitHub users and view their public repositories with infinite scroll support.
 
+DEMO link : https://williamadi92.github.io/github-repositories-explorer/
+
 ---
 
 ## 🧰 Tech Stack
